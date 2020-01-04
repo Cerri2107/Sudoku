@@ -101,18 +101,6 @@ int main(int argc, char const *argv[])
     }
     else
         cout << "...No valid solutions found\n";
-
-    /*for (int x = 0; x < 9; x++)
-        for (int y = 0; y < 9; y++) {
-            if (table[x][y] == 0) {
-                for (int n = 1; n < 10; n++)
-                    if (isCorrect(x, y, n)) {
-                        table[x][y] = n;
-                        //printTable(table);
-                        break;
-                    }
-            }
-        }*/
     
     getchar();
 
