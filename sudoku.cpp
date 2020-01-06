@@ -1,81 +1,58 @@
 #include<iostream>
+#include<math.h>
 
 using namespace std;
 
-int table[9][9] {
-    {0, 2, 0, 1, 0, 5, 0, 3, 0},
-    {0, 0, 0, 0, 2, 0, 1, 5, 0},
-    {9, 5, 0, 8, 0, 0, 6, 0, 0},
-    {1, 7, 0, 0, 3, 8, 0, 0, 0},
-    {0, 0, 9, 0, 0, 0, 4, 0, 1},
-    {8, 0, 0, 0, 5, 0, 0, 6, 0},
-    {4, 0, 0, 0, 6, 2, 0, 0, 0},
-    {0, 0, 8, 5, 0, 0, 7, 0, 3},
-    {0, 1, 5, 0, 0, 0, 0, 9, 6}
-    };
-
-//prints out a 9x9 sudoku table
-void printTable(int table[9][9]) {
-    for (int i = 0; i < 9; i++) {
-        cout << "\n";
-        for (int k = 0; k < 9; k++)
-            cout << "[" << table[i][k] << "] ";
-        cout << "\n";
+//prints out a sudoku table
+void printTable(int **_table, int *size) {
+    for (int i = 0; i < *size; i++) {
+        cout << endl;
+        for (int k = 0; k < *size; k++)
+            cout << "[" << _table[i][k] << "] ";
+        cout << endl;
     }
-    cout << "\n";
 }
 
-//checks if the number doesn't coincide with others on the same row, column and 3x3 section
-bool isCorrect(int X, int Y, int n) {
-    for (int i = 0; i < 9; i++)
-        if (table[X][i] == n || table[i][Y] == n)
+//checks that the number doesn't coincide with others on the same row, column and section of the table
+bool isCorrect(int **_table, int *size, int *X, int *Y, int* n) {
+    for (int i = 0; i < *size; i++)
+        if ((i != *Y && _table[*X][i] == *n) || (i != *X && _table[i][*Y] == *n))
             return false;
 
-    int defX, defY;
-    if (X > 5)
-        defX = 8;
-    else if (X > 2)
-        defX = 5;
-    else
-        defX = 2;
-    if (Y > 5)
-        defY = 8;
-    else if (Y > 2)
-        defY = 5;
-    else
-        defY = 2;
+    int sqrtsize = sqrt(*size);
+    int defX = *X + sqrtsize - *X % sqrtsize - 1;
+    int defY = *Y + sqrtsize - *Y % sqrtsize - 1;
 
-    for (int x = defX; x > defX - 3; x--)
-        for (int y = defY; y > defY - 3; y--)
-            if (table[x][y] == n)
+    for (int x = defX; x > defX - sqrtsize; x--)
+        for (int y = defY; y > defY - sqrtsize; y--)
+            if (!(x == *X && y == *Y) && _table[x][y] == *n)
                 return false;
+
     return true;
 }
 
-bool solveSudoku(int X, int Y) {
-    if (Y >= 9)
+//solves a 3x3 sudoku puzzle using recursion,
+//use (0, 0) as parameters
+bool solveSudoku(int **_table, int *size, int *X, int *Y) {
+    if (*Y >= *size)
         return true;
 
-    int nextX, nextY;
-    if (X >= 8) {
-        nextX = 0;
-        nextY = Y + 1;
-    }
-    else {
-        nextX = X + 1;
-        nextY = Y;
-    }
+    int nextX = (*X != *size - 1)? *X + 1 : 0;
+    int nextY = (*X == *size - 1)? *Y + 1 : *Y;
 
-    if (table[X][Y] != 0)
-        return solveSudoku(nextX, nextY);
+    if (_table[*X][*Y] != 0)
+        if (isCorrect(_table, size, X, Y, &_table[*X][*Y]))
+            return solveSudoku(_table, size, &nextX, &nextY);
+        else
+            return false;
 
-    for (int n = 1; n <= 9; n++)
-        if (isCorrect(X, Y, n)) {
-            table[X][Y] = n;
-            if (solveSudoku(nextX, nextY))
+    for (int n = 1; n <= *size; n++)
+        if (isCorrect(_table, size, X, Y, &n)) {
+            _table[*X][*Y] = n;
+            if (solveSudoku(_table, size, &nextX, &nextY))
                 return true;
             else
-                table[X][Y] = 0;
+                _table[*X][*Y] = 0;
         }
 
     return false;
@@ -84,25 +61,38 @@ bool solveSudoku(int X, int Y) {
 int main(int argc, char const *argv[])
 {
     //initialization
-    cout << "\n\tSUDOKU ALGORITHM\n";
-    cout << "This solves a Sudoku puzzle using backtracking\n\n";
-    getchar();
+    cout << endl << "This solves a Sudoku puzzle using backtracking";
+    cin.get();
 
-    //prints out default sudoku table
-    printTable(table);
-    getchar();
+    int size;
+    cout << "Size of one section of the puzzle [normally 3]: ";
+    cin >> size;
+    size = size * size;
+    cin.get();
 
-    //elaboration
-    cout << "\nElaborating...\n";
+    int **table = new int*[size];
+    for (int x = 0; x < size; x++) {
+        table[x] = new int[size];
+        for (int y = 0; y < size; y++)
+            table[x][y] = 0;
+    }
 
-    if (solveSudoku(0, 0)) {
-        cout << "...Solved\n";
-        printTable(table);
+    //prints out starting sudoku table
+    printTable(table, &size);
+    cin.get();
+
+    //elaboration and output
+    cout << "Elaborating..." << endl;
+
+    int firstX = 0, firstY = 0;
+    if (solveSudoku(table, &size, &firstX, &firstY)) {
+        cout << "...Solved" << endl;
+        printTable(table, &size);
     }
     else
-        cout << "...No valid solutions found\n";
+        cout << "...No valid solutions were found" << endl;
     
-    getchar();
+    cin.get();
 
     return 0;
 }
