@@ -65,7 +65,7 @@ int main(int argc, char const *argv[])
     cin.get();
 
     int size;
-    cout << "Size of one section of the puzzle [normally 3]: ";
+    cout << "Size of one section of the puzzle [normally 3][only very small numbers (1-4)]: ";
     cin >> size;
     size = size * size;
     cin.get();
