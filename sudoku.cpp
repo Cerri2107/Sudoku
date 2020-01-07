@@ -7,8 +7,12 @@ using namespace std;
 void printTable(int **_table, int *size) {
     for (int i = 0; i < *size; i++) {
         cout << endl;
-        for (int k = 0; k < *size; k++)
-            cout << "[" << _table[i][k] << "] ";
+        for (int k = 0; k < *size; k++) {
+            cout << "[" << _table[i][k];
+            if (*size > 3 && _table[i][k] < 10)
+                cout << " ";
+            cout << "] ";
+        }
         cout << endl;
     }
 }
@@ -32,7 +36,9 @@ bool isCorrect(int **_table, int *size, int *X, int *Y, int* n) {
 }
 
 //solves a 3x3 sudoku puzzle using recursion,
-//use (0, 0) as parameters
+//_table is the Sudoku puzzle (int**)
+//size is the length of one column of the table
+//pass 0 to X and Y
 bool solveSudoku(int **_table, int *size, int *X, int *Y) {
     if (*Y >= *size)
         return true;
@@ -92,6 +98,7 @@ int main(int argc, char const *argv[])
     else
         cout << "...No valid solutions were found" << endl;
     
+    delete[] table;
     cin.get();
 
     return 0;
