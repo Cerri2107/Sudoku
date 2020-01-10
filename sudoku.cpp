@@ -1,15 +1,16 @@
+#include<fstream>
 #include<iostream>
 #include<math.h>
 
 using namespace std;
 
 //prints out a sudoku table
-void printTable(int **_table, int *size) {
+void printTable(const int **_table, const int *size) {
     for (int i = 0; i < *size; i++) {
         cout << endl;
         for (int k = 0; k < *size; k++) {
             cout << "[" << _table[i][k];
-            if (*size > 3 && _table[i][k] < 10)
+            if (*size > 9 && _table[i][k] < 10)
                 cout << " ";
             cout << "] ";
         }
@@ -17,8 +18,30 @@ void printTable(int **_table, int *size) {
     }
 }
 
+//creates a table using input from a file, size is determined by file
+int** tableFromFile(const char *path, int *size) {
+    int **_table = 0;
+    ofstream file(path);
+    file << 1;
+    file.close();
+    ifstream ifile(path);
+
+    if (file.good()) {
+        ifile >> *size;
+        _table = new int*[*size];
+        for (int x = 0; x < *size; x++) {
+            _table[x] = new int[*size];
+            for (int y = 0; y < *size; y++)
+                ifile >> _table[x][y];
+        }
+    }
+
+    file.close();
+    return _table;
+}
+
 //checks that the number doesn't coincide with others on the same row, column and section of the table
-bool isCorrect(int **_table, int *size, int *X, int *Y, int* n) {
+bool isCorrect(const int **_table, const int *size, const int *X, const int *Y, const int *n) {
     for (int i = 0; i < *size; i++)
         if ((i != *Y && _table[*X][i] == *n) || (i != *X && _table[i][*Y] == *n))
             return false;
@@ -35,11 +58,11 @@ bool isCorrect(int **_table, int *size, int *X, int *Y, int* n) {
     return true;
 }
 
-//solves a 3x3 sudoku puzzle using recursion,
+//solves a sudoku puzzle using recursion,
 //_table is the Sudoku puzzle (int**)
 //size is the length of one column of the table
 //pass 0 to X and Y
-bool solveSudoku(int **_table, int *size, int *X, int *Y) {
+bool solveSudoku(int **_table, const int *size, int *X, int *Y) {
     if (*Y >= *size)
         return true;
 
@@ -70,19 +93,34 @@ int main(int argc, char const *argv[])
     cout << endl << "This solves a Sudoku puzzle using backtracking";
     cin.get();
 
+    bool read;
+    char resp;
+    do {
+        cout << "Read from file? (y/n): ";
+        cin >> resp;
+        if (resp == 'y')
+            read = true;
+        else if (resp == 'n')
+            read = false;
+    } while (resp != 'y' && resp != 'n');
+
+    int **table;
     int size;
-    cout << "Size of one section of the puzzle [normally 3][only very small numbers (1-4)]: ";
-    cin >> size;
-    size = size * size;
+    if (!read) {
+        cout << "Size of one section of the puzzle [normally 3][only very small numbers (1-4)]: ";
+        cin >> size;
+        size = size * size;
+        table = new int*[size];
+        for (int x = 0; x < size; x++) {
+            table[x] = new int[size];
+            for (int y = 0; y < size; y++)
+                table[x][y] = 0;
+        }
+    } 
+    else
+        table = tableFromFile("input.txt", &size);
+    
     cin.get();
-
-    int **table = new int*[size];
-    for (int x = 0; x < size; x++) {
-        table[x] = new int[size];
-        for (int y = 0; y < size; y++)
-            table[x][y] = 0;
-    }
-
     //prints out starting sudoku table
     printTable(table, &size);
     cin.get();
