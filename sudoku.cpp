@@ -5,7 +5,7 @@
 using namespace std;
 
 //prints out a sudoku table
-void printTable(const int **_table, const int *size) {
+void printTable(int **_table, int *size) {
     for (int i = 0; i < *size; i++) {
         cout << endl;
         for (int k = 0; k < *size; k++) {
@@ -21,27 +21,30 @@ void printTable(const int **_table, const int *size) {
 //creates a table using input from a file, size is determined by file
 int** tableFromFile(const char *path, int *size) {
     int **_table = 0;
-    ofstream file(path);
-    file << 1;
-    file.close();
-    ifstream ifile(path);
+    ofstream ofile(path, ios::app);
+    ofile.close();
+    fstream ifile(path, ios::in);
 
-    if (file.good()) {
+    if (ifile.peek() != EOF) {
         ifile >> *size;
+        *size = *size * *size;
         _table = new int*[*size];
         for (int x = 0; x < *size; x++) {
             _table[x] = new int[*size];
             for (int y = 0; y < *size; y++)
-                ifile >> _table[x][y];
+                if (!ifile.eof())
+                    ifile >> _table[x][y];
+                else
+                    _table[x][y] = 0;
         }
     }
 
-    file.close();
+    ifile.close();
     return _table;
 }
 
 //checks that the number doesn't coincide with others on the same row, column and section of the table
-bool isCorrect(const int **_table, const int *size, const int *X, const int *Y, const int *n) {
+bool isCorrect(int **_table, int *size, int *X, int *Y, int *n) {
     for (int i = 0; i < *size; i++)
         if ((i != *Y && _table[*X][i] == *n) || (i != *X && _table[i][*Y] == *n))
             return false;
@@ -62,9 +65,12 @@ bool isCorrect(const int **_table, const int *size, const int *X, const int *Y, 
 //_table is the Sudoku puzzle (int**)
 //size is the length of one column of the table
 //pass 0 to X and Y
-bool solveSudoku(int **_table, const int *size, int *X, int *Y) {
+bool solveSudoku(int **_table, int *size, int *X, int *Y) {
     if (*Y >= *size)
         return true;
+
+    if (_table[*X][*Y] < 0 || _table[*X][*Y] > *size)
+        return false;
 
     int nextX = (*X != *size - 1)? *X + 1 : 0;
     int nextY = (*X == *size - 1)? *Y + 1 : *Y;
@@ -106,6 +112,7 @@ int main(int argc, char const *argv[])
 
     int **table;
     int size;
+    bool valid;
     if (!read) {
         cout << "Size of one section of the puzzle [normally 3][only very small numbers (1-4)]: ";
         cin >> size;
@@ -117,24 +124,32 @@ int main(int argc, char const *argv[])
                 table[x][y] = 0;
         }
     } 
-    else
+    else {
         table = tableFromFile("input.txt", &size);
-    
-    cin.get();
-    //prints out starting sudoku table
-    printTable(table, &size);
-    cin.get();
-
-    //elaboration and output
-    cout << "Elaborating..." << endl;
-
-    int firstX = 0, firstY = 0;
-    if (solveSudoku(table, &size, &firstX, &firstY)) {
-        cout << "...Solved" << endl;
-        printTable(table, &size);
+        valid = table != 0;
     }
-    else
-        cout << "...No valid solutions were found" << endl;
+
+    if (valid) {
+        cin.get();
+        //prints out starting sudoku table
+        printTable(table, &size);
+        cin.get();
+
+        //elaboration and output
+        cout << "Elaborating..." << endl;
+
+        int firstX = 0, firstY = 0;
+        if (solveSudoku(table, &size, &firstX, &firstY)) {
+            cout << "...Solved" << endl;
+            printTable(table, &size);
+        }
+        else
+            cout << "...No valid solutions were found" << endl;
+    }
+    else {
+        cout << "The file is empty";
+        cin.get();
+    }
     
     delete[] table;
     cin.get();
